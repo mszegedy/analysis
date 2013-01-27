@@ -3,10 +3,12 @@ import math
 fns = {}
 
 def listAssign(index,lst,item):
+    """Assigns item to lst at index, returns result."""
     lst[index] = item
     return lst
 
 def listInsert(index,lst,item):
+    """Inserts item to lst at index, returns result."""
     if index == 'end':
         lst.append(item)
         return lst
@@ -15,6 +17,7 @@ def listInsert(index,lst,item):
         return lst
 
 def listSurgery(f,indices,lst,*args):
+    """Does f at depth with *args in lst, using each successive item in indices as the index of the next lowest list. Returns result."""
     if len(indices) == 1:
         return f(indices[0],lst,*args)
     else:
@@ -25,12 +28,15 @@ def listSurgery(f,indices,lst,*args):
         return listSurgery(listAssign,indices[:-1],lst,sublist)
 
 def listAppendAtDepth(level,lst,item):
+    """Appends item to list in end of lists in lst at depth level. Returns result."""
     return listSurgery(listInsert,[-1]*level+['end'],lst,item)
 
 def listAddToLastItemAtDepth(level,lst,addend):
+    """Adds addend to last item in lst at depth lvl. Returns result."""
     return listSurgery(lambda x,y,z:listAssign(x,y,y[x]+z),[-1]*(level+1),lst,addend)
 
-def rankOperator(op): # Is x a higher-order operation than y?
+def rankOperator(op):
+    """Numerically ranks the level of an operator."""
     if op in ('+','-'):
         rank = 0
     elif op in ('*','/'):
@@ -44,6 +50,7 @@ def rankOperator(op): # Is x a higher-order operation than y?
     return rank
 
 def parseStringToList(s):
+    """Parses an input string to an intermediate list."""
     for char in s:
         if char == ' ':
             s = s[1:]
@@ -85,6 +92,7 @@ def parseStringToList(s):
     return l
 
 def parseListToExpression(l):
+    """Parses list from parseStringToList to an evaluatable expression. (UNDER CONSTRUCTION)"""
     lcopy = []
     hadOp = False # Tracks whether previous item was an operator (False for no and True for yes)
     for item in l:
