@@ -1,6 +1,7 @@
 import math
 
-fns = {}
+fns = {} # Table of functions, defined by user
+debug = True # Set to true to enable debugging options
 
 def listAssign(index,lst,item):
     """Assigns item to lst at index, returns result."""
@@ -37,6 +38,8 @@ def listAddToLastItemAtDepth(level,lst,addend):
 
 def rankOperator(op):
     """Numerically ranks the level of an operator."""
+    if debug:
+        print "rankOperator("+str(op)+")"
     if op in ('+','-'):
         rank = 0
     elif op in ('*','/'):
@@ -47,6 +50,8 @@ def rankOperator(op):
         rank = 3
     else:
         rank = 4
+    if debug:
+        print "returned",rank
     return rank
 
 def parseStringToList(s):
@@ -94,24 +99,26 @@ def parseStringToList(s):
 def parseListToExpression(l):
     """Parses list from parseStringToList to an evaluatable expression. (UNDER CONSTRUCTION)"""
     lcopy = []
-    hadOp = False # Tracks whether previous item was an operator (False for no and True for yes)
+    hadOp = True # Tracks whether previous item was an operator (False for no and True for yes)
     for item in l:
         if isinstance(item,list):
             if item[0] == '[':
                 if item[-1] == ']':
+                    lcopy.append(item)
                     hadOp = False
                     continue
                 else:
                     return Error # Error: mismatched parentheses
-        if not hadOp:
+        if not hadOp and (isinstance(item,list) or item.isalnum()):
             lcopy.append('*')
         lcopy.append(item)
-        if not isinstance(item,list) and not item.isalnum():
+        if isinstance(item,list) or item.isalnum():
             hadOp = False
         else:
             hadOp = True
     l = lcopy
     del hadOp,lcopy
+    print l
     e = [] # The list that will be the expression that will be returned
     lowestRank = 4 # The rank of the lowest-ranking operator in l
     opIndex =  0 # Index of lowest-ranking operator in l
