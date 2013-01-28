@@ -23,6 +23,11 @@ def Plus(x,y):
                 return ['+',x+y[2],y[1]]
             else:
                 return ['+',x,y]
+        elif y[0] == '*':
+            if (y[1] == -1 and y[2] == x) or (y[2] == -1 and y[1] == x):
+                return 0
+            else:
+                return ['+',x,y]
         elif y[0] == '{': # }
             return ['{']+[Plus(x,i) for i in y[1:]] # }
         else:
@@ -33,6 +38,11 @@ def Plus(x,y):
                 return ['+',y+x[1],x[2]]
             elif isinstance(x[2],float):
                 return ['+',y+x[2],x[1]]
+            else:
+                return ['+',y,x]
+        elif x[0] == '*':
+            if (x[1] == -1 and x[2] == y) or (x[2] == -1 and x[1] == y):
+                return 0
             else:
                 return ['+',y,x]
         elif x[0] == '{': # }
