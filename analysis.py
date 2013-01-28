@@ -1,7 +1,6 @@
 import math
 
 fns = {} # Table of functions, defined by user
-debug = True # Set to true to enable debugging options
 
 def listAssign(index,lst,item):
     """Assigns item to lst at index, returns result."""
@@ -40,19 +39,16 @@ def rankOperator(op):
     """Numerically ranks the level of an operator."""
     if debug:
         print "rankOperator("+str(op)+")"
-    if op in ('+','-'):
+    if op == '=':
         rank = 0
-    elif op in ('*','/'):
+    elif op in ('+','-'):
         rank = 1
-    elif op == '^':
+    elif op in ('*','/'):
         rank = 2
-    elif op == '=':
+    elif op == '^':
         rank = 3
     else:
         rank = 4
-    if debug:
-        print "returned",rank
-    return rank
 
 def parseStringToList(s):
     """Parses an input string to an intermediate list."""
@@ -118,7 +114,6 @@ def parseListToExpression(l):
             hadOp = True
     l = lcopy
     del hadOp,lcopy
-    print l
     e = [] # The list that will be the expression that will be returned
     lowestRank = 4 # The rank of the lowest-ranking operator in l
     opIndex =  0 # Index of lowest-ranking operator in l
