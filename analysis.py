@@ -37,8 +37,6 @@ def listAddToLastItemAtDepth(level,lst,addend):
 
 def rankOperator(op):
     """Numerically ranks the level of an operator."""
-    if debug:
-        print "rankOperator("+str(op)+")"
     if op == '=':
         rank = 0
     elif op in ('+','-'):
@@ -49,6 +47,7 @@ def rankOperator(op):
         rank = 3
     else:
         rank = 4
+    return rank
 
 def parseStringToList(s):
     """Parses an input string to an intermediate list."""
@@ -93,7 +92,7 @@ def parseStringToList(s):
     return l
 
 def parseListToExpression(l):
-    """Parses list from parseStringToList to an evaluatable expression. (UNDER CONSTRUCTION)"""
+    """Parses list from parseStringToList to an evaluatable expression."""
     lcopy = []
     hadOp = True # Tracks whether previous item was an operator (False for no and True for yes)
     for item in l:
@@ -124,7 +123,66 @@ def parseListToExpression(l):
     if lowestRank < 4:
         e = [l[opIndex],parseListToExpression(l[:opIndex]),parseListToExpression(l[opIndex+1:])]
     else:
-        e = l
+        if len(l) == 0:
+            return Error # Error: too many operators in a row
+        if len(l) == 1:
+            e = l[0]
+            if isinstance(e,list):
+                if e[0] == '[': # ] (for overzealous parsers)
+                    return Error # Error: list of arguments without preceding operator
+                elif e[0] == '(':
+                    if e[-1] == ')':
+                        e = parseListToExpression(e[1:-1])
+                    else:
+                        return Error # Error: mismatched parentheses
+                elif e[0] == '{':
+                    if e[-1] == '}':
+                        e = e[:-1]
+                    else:
+                        return Error # Error: mismatched parentheses
+                else:
+                    return Error # Error: argument clause without operator
+            elif isinstance(e,str):
+                charCount = 0 # Counts the number of non-numeral chars in e
+                for char in e:
+                    if char == '.':
+                        charCount += 1
+                    elif char.isalpha():
+                        charCount += 2
+                    else:
+                        pass
+                if charCount <= 1:
+                    e = float(e)
+                else:
+                    pass
+            else:
+                return Error # Error: unknown error
+        elif len(l) == 2:
+            if isinstance(l[0],str) and isinstance(l[1],list) and l[1][0] == '[' and l[1][-1] == ']':
+                charCount = 0 # Same as above
+                for char in l[0]:
+                    if char == '.':
+                        charCount += 1
+                    elif char.isalpha():
+                        charCount += 2
+                    else:
+                        pass
+                if charCount <= 1:
+                    return Error # Error: cannot have numbers as function names
+                else:
+                    e.append(l[0])
+                    hadComma = True # Tracks whether last item parsed in l[1] was a comma or not
+                    for index,item in enumerate(l[1][1:-1]):
+                        if item == ',':
+                            hadComma = True
+                        else:
+                            if hadComma:
+                                if index != 0:
+                                    e[-1] = parseListToExpression(e[-1])
+                                e.append([])
+                            e[-1].append(item)
+                            hadComma = False
+                    e[-1] = parseListToExpression(e[-1])
     return e
 
 print "MAT (Michael's Analysis Tool), version 0.0.0\nAll rights reserved"
