@@ -293,6 +293,8 @@ def evaluateExpression(l):
         elif op == '/':
             if len(args) == 2:
                 return evaluateExpression(Times(evaluateExpression(args[0]),evaluateExpression(Reciprocal(evaluateExpression(args[1])))))
+        elif op == '{': # }
+            return ['{']+[evaluateExpression(i) for i in args]
         else:
             try:
                 result = fns[op][0]

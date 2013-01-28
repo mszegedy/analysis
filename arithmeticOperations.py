@@ -49,6 +49,8 @@ def Plus(x,y):
                 return ['*',Plus(y[2],1.0),x]
             else:
                 return ['+',x,y]
+        elif y[0] == '{': # }
+            return ['{']+[Plus(x,i) for i in y[1:]] # }
         else:
             return ['+',x,y]
     elif isinstance(x,list) and isinstance(y,str):
@@ -66,10 +68,13 @@ def Plus(x,y):
                 return ['*',Plus(x[2],1.0),y]
             else:
                 return ['+',y,x]
+        elif x[0] == '{': # }
+            return ['{']+[Plus(y,i) for i in x[1:]] # }
         else:
             return ['+',y,x]
     elif isinstance(x,list) and isinstance(y,list):
-        pass
+        if x[0] == '{' and y[0] == '{': # }}
+            return ['{']+[Plus(a,b) for a,b in zip(x[1:],y[1:])]
     else:
         return ['+',x,y]
 def Times(x,y):
