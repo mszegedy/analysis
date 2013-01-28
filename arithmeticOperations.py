@@ -1,6 +1,9 @@
 import math
 
+# The places where 'pass' is written are the places where code still needs to be written!
+
 def Plus(x,y):
+    """Adds two things together."""
     if isinstance(x,float) and isinstance(y,float):
         return x+y
     elif isinstance(x,float) and isinstance(y,str):
@@ -65,3 +68,23 @@ def Plus(x,y):
         pass
     else:
         return ['+',x,y]
+def Times(x,y):
+    """Multiplies two things together."""
+    if isinstance(x,float) and isinstance(y,float):
+        return x*y
+    elif isinstance(x,float) and isinstance(y,str):
+        return ['*',x,y]
+    elif isinstance(x,str) and isinstance(y,float):
+        return ['*',y,x]
+    elif isinstance(x,float) and isinstance(y,list):
+        pass
+    elif isinstance(x,list) and isinstance(y,float):
+        pass
+    elif isinstance(x,str) and isinstance(y,list):
+        pass
+    elif isinstance(x,list) and isinstance(y,str):
+        pass
+    elif isinstance(x,list) and isinstance(y,list):
+        pass
+    else:
+        return ['*',x,y]

@@ -274,7 +274,17 @@ def evaluateExpression(l):
             if len(args) == 2:
                 return Plus(evaluateExpression(args[0]),evaluateExpression(args[1]))
             else:
-                return Error # Error: + has too many arguments
+                return Error # Error: + has incorrect number of arguments
+        elif op == '-':
+            if len(args) == 2:
+                return Plus(evaluateExpression(args[0]),evaluateExpression(Times(-1.0,evaluateExpression(args[1]))))
+            else:
+                return Error # Error: - has incorrect number of arguments
+        elif op == '*':
+            if len(args) == 2:
+                return Times(evaluateExpression(args[0]),evaluateExpression(args[1]))
+            else:
+                return Error # Error: * has incorrect number of arguments
         else:
             try:
                 result = fns[op]
