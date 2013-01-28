@@ -10,6 +10,11 @@ def Plus(x,y):
         return ['+',x,y]
     elif isinstance(x,str) and isinstance(y,float):
         return ['+',y,x]
+    elif isinstance(x,str) and isinstance(y,str):
+        if x == y:
+            return ['*',2.0,x]
+        else:
+            return ['+',x,y]
     elif isinstance(x,float) and isinstance(y,list):
         if y[0] == '+':
             if isinstance(y[1],float):
