@@ -291,7 +291,7 @@ def evaluateExpression(l):
                 for index,item in args[1:]:
                     result = listSearchAndReplace(str(index),item)
                 return evaluateExpression(result)
-            except IndexError:
+            except KeyError:
                 return Error # Error: no such function
 
 print "MAT (Michael's Analysis Tool), version 0.0.0\nAll rights reserved"
