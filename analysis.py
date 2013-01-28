@@ -58,6 +58,45 @@ def isTerm(s):
                 result = False
     return result
 
+def getListDepth(lst):
+    """Returns the depth at which the deepest level of lst is."""
+    depths = []
+    for item in lst:
+        if isinstance(item,(list,tuple)):
+            depth = 1
+            depth += getListDepth(item)
+            depths.append(depth)
+    try:
+        return max(depths)
+    except ValueError:
+        return 0
+
+def countListItemsByType(lst):
+    """Returns a tuple, with the first item the number of floats in a list, the second item the number of strings in a list, and the third item the number of lists in a list."""
+    count = [0,0,0]
+    for item in lst:
+        if isinstance(item,float):
+            count[0] += 1
+        elif isinstance(item,str):
+            count[1] += 1
+        elif isinstance(item,list):
+            count[2] += 1
+        else:
+            pass
+    return tuple(count)
+
+def listSearchAndReplace(lst,x,y):
+    """Returns lst with every x in it replaced by y."""
+    result = []
+    for item in lst:
+        if item == x:
+            result.append(y)
+        elif isinstance(item,list):
+            result.append(listSearchAndReplace(item))
+        else:
+            result.append(item)
+    return result
+
 def parseStringToList(s):
     """Parses an input string to an intermediate list."""
     for char in s:
@@ -215,6 +254,27 @@ def parseListToExpression(l):
                             hadComma = False
                     e[-1] = parseListToExpression(e[-1])
     return e
+
+def evaluateExpression(l):
+    op = l[0]
+    args = l[1:]
+    if op == '=':
+        if len(args) != 2:
+            return Error # Error: an equal sign has two sides
+        elif getListDepth(args[0]) == 0 and countListItemsByType(args[0])[1:] >= 1 and countListItemsByType(args[0])[1:] == (0,0):
+            for num,arg in enumerate(args[0][1:]):
+                args[1] = listSearchAndReplace(args[1],arg,str(num))
+            fns[args[0][0]] = args[1]
+        else:
+            return evaluateExpression(args[0]) == evaluateExpression(args[1])
+    else:
+        try:
+            result = fns[op]
+            for index,item in args[1:]:
+                result = listSearchAndReplace(str(index),item)
+            return evaluateExpression(result)
+        except IndexError:
+            return Error # Error: no such function
 
 print "MAT (Michael's Analysis Tool), version 0.0.0\nAll rights reserved"
 while True:
