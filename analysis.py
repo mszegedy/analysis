@@ -1,4 +1,5 @@
 import math
+from arithmeticOperations import *
 
 fns = {} # Table of functions, defined by user
 
@@ -187,7 +188,6 @@ def parseListToExpression(l):
                     if e[-1] == '}':
                         e = ['{']
                         hadComma = True # Keeps track of whether last item processed was a comma
-                        
                         for index,item in enumerate(l[0][1:-1]):
                             if item == ',':
                                 hadComma = True
@@ -256,25 +256,33 @@ def parseListToExpression(l):
     return e
 
 def evaluateExpression(l):
-    op = l[0]
-    args = l[1:]
-    if op == '=':
-        if len(args) != 2:
-            return Error # Error: an equal sign has two sides
-        elif getListDepth(args[0]) == 0 and countListItemsByType(args[0])[1:] >= 1 and countListItemsByType(args[0])[1:] == (0,0):
-            for num,arg in enumerate(args[0][1:]):
-                args[1] = listSearchAndReplace(args[1],arg,str(num))
-            fns[args[0][0]] = args[1]
-        else:
-            return evaluateExpression(args[0]) == evaluateExpression(args[1])
+    if not isinstance(l,(list,tuple)):
+        return l
     else:
-        try:
-            result = fns[op]
-            for index,item in args[1:]:
-                result = listSearchAndReplace(str(index),item)
-            return evaluateExpression(result)
-        except IndexError:
-            return Error # Error: no such function
+        op = l[0]
+        args = l[1:]
+        if op == '=':
+            if len(args) != 2:
+                return Error # Error: an equal sign has two sides
+            elif getListDepth(args[0]) == 0 and countListItemsByType(args[0])[1:] >= 1 and countListItemsByType(args[0])[1:] == (0,0):
+                for num,arg in enumerate(args[0][1:]):
+                    args[1] = listSearchAndReplace(args[1],arg,str(num))
+                fns[args[0][0]] = args[1]
+            else:
+                return evaluateExpression(args[0]) == evaluateExpression(args[1])
+        elif op == '+':
+            if len(args) == 2:
+                return Plus(evaluateExpression(args[0]),evaluateExpression(args[1]))
+            else:
+                return Error # Error: + has too many arguments
+        else:
+            try:
+                result = fns[op]
+                for index,item in args[1:]:
+                    result = listSearchAndReplace(str(index),item)
+                return evaluateExpression(result)
+            except IndexError:
+                return Error # Error: no such function
 
 print "MAT (Michael's Analysis Tool), version 0.0.0\nAll rights reserved"
 while True:
@@ -282,4 +290,4 @@ while True:
     if expression == 'quit':
         break
     else:
-        print parseListToExpression(parseStringToList(expression))
+        print evaluateExpression(parseListToExpression(parseStringToList(expression)))
