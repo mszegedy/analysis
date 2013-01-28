@@ -18,6 +18,8 @@ def Plus(x,y):
                 return ['+',x+y[2],y[1]]
             else:
                 return ['+',x,y]
+        elif y[0] == '{': # }
+            return ['{']+[Plus(x,i) for i in y[1:]] # }
         else:
             return ['+',x,y]
     elif isinstance(x,list) and isinstance(y,float):
@@ -28,6 +30,8 @@ def Plus(x,y):
                 return ['+',y+x[2],x[1]]
             else:
                 return ['+',y,x]
+        elif x[0] == '{': # }
+            return ['{']+[Plus(y,i) for i in x[1:]] # }
         else:
             return ['+',y,x]
     elif isinstance(x,str) and isinstance(y,list):
@@ -88,3 +92,30 @@ def Times(x,y):
         pass
     else:
         return ['*',x,y]
+def Reciprocal(x):
+    """Takes the reciprocal of something."""
+    if isinstance(x,float):
+        return 1.0/x
+    elif isinstance(x,str):
+        return ['/',1.0,x]
+    elif isinstance(x,list):
+        if x[0] == '/':
+            return ['/',x[2],x[1]]
+        elif x[0] == '{': # }
+            return ['{']+[Reciprocal(i) for i in x[1:]] # }
+        elif x[0] == 'Sin':
+            return ['Csc',x[1]]
+        elif x[0] == 'Cos':
+            return ['Sec',x[1]]
+        elif x[0] == 'Tan':
+            return ['Cot',x[1]]
+        elif x[0] == 'Csc':
+            return ['Sin',x[1]]
+        elif x[0] == 'Sec':
+            return ['Cos',x[1]]
+        elif x[0] == 'Cot':
+            return ['Cot',x[1]]
+        else:
+            return ['/',1.0,x]
+    else:
+        return ['/',1.0,x]

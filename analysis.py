@@ -93,7 +93,7 @@ def listSearchAndReplace(lst,x,y):
         if item == x:
             result.append(y)
         elif isinstance(item,list):
-            result.append(listSearchAndReplace(item))
+            result.append(listSearchAndReplace(item,x,y))
         else:
             result.append(item)
     return result
@@ -259,15 +259,20 @@ def evaluateExpression(l):
     if not isinstance(l,(list,tuple)):
         return l
     else:
+        if len(l) == 1:
+            return evaluateExpression(l[0])
         op = l[0]
         args = l[1:]
         if op == '=':
             if len(args) != 2:
                 return Error # Error: an equal sign has two sides
-            elif getListDepth(args[0]) == 0 and countListItemsByType(args[0])[1:] >= 1 and countListItemsByType(args[0])[1:] == (0,0):
-                for num,arg in enumerate(args[0][1:]):
-                    args[1] = listSearchAndReplace(args[1],arg,str(num))
-                fns[args[0][0]] = args[1]
+            elif getListDepth(args[0]) == 0:
+                for index,item in enumerate(args[0][1:]):
+                    args[0][index+1] = evaluateExpression(args[0][index+1])
+                if countListItemsByType(args[0])[1] > 1 and (countListItemsByType(args[0])[0],countListItemsByType(args[0])[2]) == (0,0):
+                    for num,arg in enumerate(args[0][1:]):
+                        args[1] = listSearchAndReplace(args[1],arg,str(num))
+                    fns[args[0][0]] = [args[1],len(args[0][1:])]
             else:
                 return evaluateExpression(args[0]) == evaluateExpression(args[1])
         elif op == '+':
@@ -285,11 +290,16 @@ def evaluateExpression(l):
                 return Times(evaluateExpression(args[0]),evaluateExpression(args[1]))
             else:
                 return Error # Error: * has incorrect number of arguments
+        elif op == '/':
+            if len(args) == 2:
+                return evaluateExpression(Times(evaluateExpression(args[0]),evaluateExpression(Reciprocal(evaluateExpression(args[1])))))
         else:
             try:
-                result = fns[op]
-                for index,item in args[1:]:
-                    result = listSearchAndReplace(str(index),item)
+                result = fns[op][0]
+                if len(args) != fns[op][1]:
+                    return Error # Error: incorrect number of arguments
+                for index,item in enumerate(args):
+                    result = listSearchAndReplace(result,str(index),item)
                 return evaluateExpression(result)
             except KeyError:
                 return Error # Error: no such function
