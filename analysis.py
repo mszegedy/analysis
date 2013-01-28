@@ -37,7 +37,7 @@ def listAddToLastItemAtDepth(level,lst,addend):
 
 def rankOperator(op):
     """Numerically ranks the level of an operator."""
-    if op == '=':
+    if op in ('=','<','>','<=','>=','->'):
         rank = 0
     elif op in ('+','-'):
         rank = 1
@@ -48,6 +48,15 @@ def rankOperator(op):
     else:
         rank = 4
     return rank
+
+def isTerm(s):
+    """Checks whether a string is a valid mathematical term."""
+    result = True
+    if not isinstance(s,list):
+        for char in s:
+            if not char.isalnum() and char != '.':
+                result = False
+    return result
 
 def parseStringToList(s):
     """Parses an input string to an intermediate list."""
@@ -62,7 +71,7 @@ def parseStringToList(s):
         else:
             break
     l = [] # List that will eventually be returned
-    charState = 0 # Tracks whether the last character was a separator (0), non-alphanumeric (1), number (2), or letter (3)
+    charState = 0 # Tracks whether the last character was a separator (0), non-alphanumeric (1), number or period (2), or letter (3)
     level = 0 # Level in list at which to perform operations
     for char in s:
         if char == ' ':
@@ -76,7 +85,7 @@ def parseStringToList(s):
             listAppendAtDepth(level,l,char)
             level -= 1
             charState = 0
-        elif not char.isalnum():
+        elif not char.isalnum() and char != '.':
             if charState != 1:
                 listAppendAtDepth(level,l,'')
             listAddToLastItemAtDepth(level,l,char)
@@ -104,10 +113,10 @@ def parseListToExpression(l):
                     continue
                 else:
                     return Error # Error: mismatched parentheses
-        if not hadOp and (isinstance(item,list) or item.isalnum()):
+        if not hadOp and (isTerm(item)):
             lcopy.append('*')
         lcopy.append(item)
-        if isinstance(item,list) or item.isalnum():
+        if isTerm(item):
             hadOp = False
         else:
             hadOp = True
@@ -128,7 +137,7 @@ def parseListToExpression(l):
         if len(l) == 1:
             e = l[0]
             if isinstance(e,list):
-                if e[0] == '[': # ] (for overzealous parsers)
+                if e[0] == '[':
                     return Error # Error: list of arguments without preceding operator
                 elif e[0] == '(':
                     if e[-1] == ')':
@@ -137,39 +146,61 @@ def parseListToExpression(l):
                         return Error # Error: mismatched parentheses
                 elif e[0] == '{':
                     if e[-1] == '}':
-                        e = e[:-1]
+                        e = ['{']
+                        hadComma = True # Keeps track of whether last item processed was a comma
+                        
+                        for index,item in enumerate(l[0][1:-1]):
+                            if item == ',':
+                                hadComma = True
+                            else:
+                                if hadComma:
+                                    if index != 0:
+                                        e[-1] = parseListToExpression(e[-1])
+                                    e.append([])
+                                e[-1].append(item)
+                                hadComma = False
+                        e[-1] = parseListToExpression(e[-1])
                     else:
                         return Error # Error: mismatched parentheses
                 else:
                     return Error # Error: argument clause without operator
             elif isinstance(e,str):
                 charCount = 0 # Counts the number of non-numeral chars in e
+                hadAlpha = False # Keeps track of whether there has been a letter yet
                 for char in e:
                     if char == '.':
                         charCount += 1
                     elif char.isalpha():
+                        hadAlpha = True
                         charCount += 2
                     else:
                         pass
                 if charCount <= 1:
                     e = float(e)
                 else:
-                    pass
+                    if hadAlpha:
+                        pass
+                    else:
+                        return Error # Error: cannot have term consisting entirely out of numbers and periods
             else:
                 return Error # Error: unknown error
         elif len(l) == 2:
             if isinstance(l[0],str) and isinstance(l[1],list) and l[1][0] == '[' and l[1][-1] == ']':
                 charCount = 0 # Same as above
+                hadAlpha = False
                 for char in l[0]:
                     if char == '.':
                         charCount += 1
                     elif char.isalpha():
+                        hadAlpha = True
                         charCount += 2
                     else:
                         pass
                 if charCount <= 1:
                     return Error # Error: cannot have numbers as function names
                 else:
+                    if not hadAlpha:
+                        return Error # Error: cannot have function name consisting entirely out of numbers and periods
                     e.append(l[0])
                     hadComma = True # Tracks whether last item parsed in l[1] was a comma or not
                     for index,item in enumerate(l[1][1:-1]):
