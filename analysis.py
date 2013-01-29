@@ -265,7 +265,7 @@ def evaluateExpression(l):
         args = l[1:]
         if op == '=':
             if len(args) != 2:
-                return Error # Error: an equal sign has two sides
+                return Error # Error: = has incorrect number of arguments
             elif getListDepth(args[0]) == 0:
                 for index,item in enumerate(args[0][1:]):
                     args[0][index+1] = evaluateExpression(args[0][index+1])
@@ -277,22 +277,22 @@ def evaluateExpression(l):
                 return evaluateExpression(args[0]) == evaluateExpression(args[1])
         elif op == '+':
             if len(args) == 2:
-                return Plus(evaluateExpression(args[0]),evaluateExpression(args[1]))
+                return Add(evaluateExpression(args[0]),evaluateExpression(args[1]))
             else:
                 return Error # Error: + has incorrect number of arguments
         elif op == '-':
             if len(args) == 2:
-                return Plus(evaluateExpression(args[0]),evaluateExpression(Times(-1.0,evaluateExpression(args[1]))))
+                return Add(evaluateExpression(args[0]),evaluateExpression(Multiply(-1.0,evaluateExpression(args[1]))))
             else:
                 return Error # Error: - has incorrect number of arguments
         elif op == '*':
             if len(args) == 2:
-                return Times(evaluateExpression(args[0]),evaluateExpression(args[1]))
+                return Multiply(evaluateExpression(args[0]),evaluateExpression(args[1]))
             else:
                 return Error # Error: * has incorrect number of arguments
         elif op == '/':
             if len(args) == 2:
-                return evaluateExpression(Times(evaluateExpression(args[0]),evaluateExpression(Reciprocal(evaluateExpression(args[1])))))
+                return evaluateExpression(Multiply(evaluateExpression(args[0]),evaluateExpression(Reciprocal(evaluateExpression(args[1])))))
         elif op == '{': # }
             return ['{']+[evaluateExpression(i) for i in args]
         else:
