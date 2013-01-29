@@ -16,12 +16,16 @@ def getCommutativeArgList(op,lst):
 
 def Add(x,y):
     """Adds two things together."""
-    if x == 0:
+    if isinstance(y,list) and y[0] == '-' and y[2] == x:
+        return y[1]
+    elif isinstance(x,list) and x[0] == '-' and x[2] == y:
+        return x[1]
+    elif x in (0,0.0):
         return y
-    elif y == 0:
+    elif y in (0,0.0):
         return x
-    elif y in (['*',-1,x],['*',x,-1]) or x in (['*',-1,y],['*',y,-1]):
-        return 0
+    elif y in (['*',-1.0,x],['*',x,-1.0]) or x in (['*',-1.0,y],['*',y,-1.0]):
+        return 0.0
     elif isinstance(x,float) and isinstance(y,float):
         return x+y
     elif isinstance(x,float) and isinstance(y,str):
@@ -36,11 +40,15 @@ def Add(x,y):
     elif isinstance(x,float) and isinstance(y,list):
         if y[0] == '+':
             if isinstance(y[1],float):
-                return ['+',x+y[1],y[2]]
+                return Add(x+y[1],y[2])
             elif isinstance(y[2],float):
-                return ['+',x+y[2],y[1]]
+                return Add(x+y[2],y[1])
             else:
                 return ['+',x,y]
+        elif y[0] == '-':
+            argslist = getCommutativeArgList('+',y[2])
+            if isinstance(reduce(Add,argslist)[1],float):
+                return ['-',Add(x/reduce(Add,argslist),y[1]),reduce(Add,argslist[1:])]
         elif y[0] == '{':
             return ['{']+[Add(x,i) for i in y[1:]]
         else:
@@ -50,64 +58,92 @@ def Add(x,y):
     elif isinstance(x,str) and isinstance(y,list):
         if y[0] == '+':
             if y[1] == x:
-                return ['+',['*',2.0,x],y[2]]
+                return Add(['*',2.0,x],y[2])
             elif y[2] == x:
-                return ['+',['*',2.0,x],y[1]]
+                return Add(['*',2.0,x],y[1])
             else:
                 return ['+',x,y]
+        elif y[0] == '-':
+            argslist = getCommutativeArgList(y[2])
+            if x in argslist:
+                argslist.remove(x)
+                if len(argslist) > 0:
+                    return ['-',y[1],reduce(Add,argslist)]
+                else:
+                    return y[1]
         elif y[0] == '*':
-            if y[2] == x:
-                return ['*',Add(y[1],1.0),x]
-            elif y[1] == x:
-                return ['*',Add(y[2],1.0),x]
+            if y[1] == x:
+                return ['*',x,Add(y[1],1.0)]
+            elif y[2] == x:
+                return ['*',x,Add(y[2],1.0)]
             else:
                 return ['+',x,y]
         elif y[0] == '{':
             return ['{']+[Add(x,i) for i in y[1:]]
         else:
             return ['+',x,y]
-    elif isinstance(x,list) and isinstance(y,str):
+    elif isinstance(x,(list,tuple)) and isinstance(y,str):
         return Add(y,x)
-    elif isinstance(x,list) and isinstance(y,(list,tuple)):
+    elif isinstance(x,(list,tuple)) and isinstance(y,(list,tuple)): # TO DO: minus expressions
         if x[0] == '+' and y[0] == '+':
-            recursive1 = Add(Add(x[1],y[1]),Add(x[2],y[2]))
-            if isinstance(recursive1,list):
-                if isinstance(recursive1[1],list) and isinstance(recursive1[2],list):
-                    if recursive1[1][0] == '+' and recursive1[2][0] == '+':
-                        recursive2 = Add(Add(recursive1[1][1],recursive1[2][1]),Add(recursive1[1][2],recursive1[2][2]))
-                        return recursive2
-                    else:
-                        return recursive1
+            if isinstance(x[1],float):
+                return Add(x[1],Add(y[1],Add(x[2],y[2])))
+            elif isinstance(x[1],str):
+                if isinstance(y[1],float):
+                    return Add(y[1],Add(x[1],Add(x[2],y[2])))
+                elif isinstance(y[2],float):
+                    return Add(y[2],Add(x[1],Add(x[2],y[2])))
                 else:
-                    return recursive1
+                    return Add(x[1],Add(y[1],Add(x[2],y[2])))
             else:
-                return recursive1
-        elif x[0] == '*' and y[0] == '*':
+                if isinstance(x[2],(list,tuple)):
+                    if (isinstance(y[1],(float,str)) or isinstance(y[1],(float,str))):
+                        return Add(y,x)
+                    else:
+                        return Add(x[1],Add(x[2],Add(y[1],y[2])))
+                else:
+                    return Add(Add(x[2],x[1]),y)
+        elif x[0] == '+' and y[0] == '*':
+            argslistx == getCommutativeArgList(x)
+            argslisty == getCommutativeArgList(y)
+            ############### TO DO ##############
+            return ['*',x,y]
+        elif x[0] == '^' and y[0] == '*':
+            return Multiply(y,x)
+        elif x[0] == '^' and y[0] == '^':
             if x[1] == y[1]:
-                return ['*',Add(x[2],y[2]),x[1]]
-            elif x[2] == y[2]:
-                return ['*',Add(x[1],y[1]),x[2]]
-            elif x[1] == y[2]:
-                return ['*',Add(x[2],y[1]),x[1]]
-            elif x[2] == y[1]:
-                return ['*',Add(x[1],y[2]),x[2]]
+                return ['^',x[1],Add(x[2],y[2])]
             else:
-                return ['+',x,y]
-        elif x[0] == '/' and y[0] == '/':
-            if x[2] == y[2]:
-                return ['/',Add(x[1],y[1]),x[2]]
-            else:
-                return ['+',x,y]
+                return ['*',x,y]
         elif x[0] == '{' and y[0] == '{':
-            return ['{']+[Add(a,b) for a,b in zip(x[1:],y[1:])]
+            return ['*',x,y]
         else:
-            return ['+',x,y]
+            return ['*',x,y]
     else:
-        return ['+',x,y]
+        return ['*',x,y]
+def AdditiveInverse(x):
+    if isinstance(x,float):
+        return -x
+    elif x in (0,0.0):
+        return 0.0
+    elif isinstance(x,(list,tuple)):
+        if x[0] == '-':
+            if x[1] == x[2]:
+                return 0.0
+            else:
+                return ['-',x[2],x[1]]
+        else:
+            return ['-',0,x]
+    else:
+        return ['-',0,x]
 def Multiply(x,y):
     """Multiplies two things together."""
     if 0 in (x,y):
         return 0.0
+    elif isinstance(y,list) and y[0] == '/' and y[2] == x:
+        return y[1]
+    elif isinstance(x,list) and x[0] == '/' and x[2] == y:
+        return x[1]
     elif x in (1,1.0):
         return y
     elif y in (1,1.0):
@@ -130,9 +166,9 @@ def Multiply(x,y):
             return Add(Multiply(x,y[1]),Multiply(x,y[2]))
         elif y[0] == '*':
             if isinstance(y[1],float):
-                return ['*',x*y[1],y[2]]
+                return Multiply(x*y[1],y[2])
             elif isinstance(y[2],float):
-                return ['*',x*y[2],y[1]]
+                return Multiply(x*y[2],y[1])
             else:
                 return ['*',x,y]
         elif y[0] == '/':
@@ -150,11 +186,19 @@ def Multiply(x,y):
             return Add(Multiply(x,y[1]),Multiply(x,y[2]))
         elif y[0] == '*':
             if y[1] == x:
-                return ['*',['^',x,2.0],y[2]]
+                return Multiply(['^',x,2.0],y[2])
             elif y[2] == x:
-                return ['*',['^',x,2.0],y[1]]
+                return Multiply(['^',x,2.0],y[1])
             else:
                 return ['*',x,y]
+        elif y[0] == '/':
+            argslist = getCommutativeArgList(y[2])
+            if x in argslist:
+                argslist.remove(x)
+                if len(argslist) > 0:
+                    return ['/',y[1],reduce(Multiply,argslist)]
+                else:
+                    return y[1]
         elif y[0] == '^':
             if y[1] == x:
                 return ['^',x,Add(y[1],1.0)]
@@ -164,22 +208,48 @@ def Multiply(x,y):
             return ['{']+[Multiply(x,i) for i in y[1:]]
         else:
             return ['*',x,y]
-    elif isinstance(x,list) and isinstance(y,str):
+    elif isinstance(x,(list,tuple)) and isinstance(y,str):
         return Multiply(y,x)
-    elif isinstance(x,(list,tuple)) and isinstance(y,(list,tuple)):
+    elif isinstance(x,(list,tuple)) and isinstance(y,(list,tuple)): ### TO DO: multiplying a multiplication expression with a fraction, multiplying a fraction with a fraction
+        if x[0] == '+' and y[0] == '+':
+            return Add(Multiply(Add(y[1],y[2]),x[1]),Multiply(Add(y[1],y[2]),x[2]))
+        if x[0] == '+' and y[0] == '*':
+            return Add(Multiply(x[1],y),Multiply(x[2],y))
+        if x[0] == '*' and y[0] == '+':
+            return Multiply(y,x)
         if x[0] == '*' and y[0] == '*':
-            recursive1 = Multiply(Multiply(x[1],y[1]),Multiply(x[2],y[2]))
-            if isinstance(recursive1,list):
-                if isinstance(recursive1[1],list) and isinstance(recursive1[2],list):
-                    if recursive1[1][0] == '+' and recursive1[2][0] == '+':
-                        recursive2 = Multiply(Multiply(recursive1[1][1],recursive1[2][1]),Multiply(recursive1[1][2],recursive1[2][2]))
-                        return recursive2
-                    else:
-                        return recursive1
+            if isinstance(x[1],float):
+                return Multiply(x[1],Multiply(y[1],Multiply(x[2],y[2])))
+            elif isinstance(x[1],str):
+                if isinstance(y[1],float):
+                    return Multiply(y[1],Multiply(x[1],Multiply(x[2],y[2])))
+                elif isinstance(y[2],float):
+                    return Multiply(y[2],Multiply(x[1],Multiply(x[2],y[2])))
                 else:
-                    return recursive1
+                    return Multiply(x[1],Multiply(y[1],Multiply(x[2],y[2])))
             else:
-                return recursive1
+                if isinstance(x[2],(list,tuple)):
+                    if (isinstance(y[1],(float,str)) or isinstance(y[1],(float,str))):
+                        return Multiply(y,x)
+                    else:
+                        return Multiply(x[1],Multiply(x[2],Multiply(y[1],y[2])))
+                else:
+                    return Multiply(Multiply(x[2],x[1]),y)
+        elif x[0] == '*' and y[0] == '^':
+            argslist == getCommutativeArgList(x)
+            if y[1] in argslist or ['^',y[1]] in map(lambda a:if isinstance(a,(list,tuple)):a[0:2] else:a,arglist):
+                addend = 0
+                for item in filter(lambda a:a==y[1],argslist):
+                    addend += 1
+                    argslist.remove(item)
+                for item in filter(lambda a:if isinstance(a,(list,tuple)):a[1]==y[1] else:False,argslist):
+                    addend = Add(addend,item[2])
+                    argslist.remove(item)
+                return Multiply(reduce(Multiply,argslist),['^',y[1],Add(addend,y[2])])
+            else:
+                return ['*',x,y]
+        elif x[0] == '^' and y[0] == '*':
+            return Multiply(y,x)
         elif x[0] == '^' and y[0] == '^':
             if x[1] == y[1]:
                 return ['^',x[1],Add(x[2],y[2])]
@@ -188,9 +258,9 @@ def Multiply(x,y):
         elif x[0] == '{' and y[0] == '{':
             return ['*',x,y]
         else:
-            return ['+',x,y]
+            return ['*',x,y]
     else:
-        return ['+',x,y]
+        return ['*',x,y]
 def Reciprocal(x):
     """Takes the reciprocal of something."""
     if x in (0,0.0):
