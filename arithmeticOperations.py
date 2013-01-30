@@ -242,7 +242,7 @@ def Multiply(x,y):
                 for item in filter(lambda a:a==y[1],argslist):
                     addend += 1
                     argslist.remove(item)
-                for item in filter(lambda a:if isinstance(a,(list,tuple)):a[1]==y[1] else:False,argslist):
+                for item in filter(lambda a: True if isinstance(a,(list,tuple)) and a[1]==y[1] else False,argslist):
                     addend = Add(addend,item[2])
                     argslist.remove(item)
                 return Multiply(reduce(Multiply,argslist),['^',y[1],Add(addend,y[2])])
