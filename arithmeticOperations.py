@@ -64,7 +64,7 @@ def Add(x,y):
             else:
                 return ['+',x,y]
         elif y[0] == '-':
-            argslist = getCommutativeArgList(y[2])
+            argslist = getCommutativeArgList('+',y[2])
             if x in argslist:
                 argslist.remove(x)
                 if len(argslist) > 0:
@@ -104,23 +104,23 @@ def Add(x,y):
                 else:
                     return Add(Add(x[2],x[1]),y)
         elif x[0] == '+' and y[0] == '*':
-            argslistx == getCommutativeArgList(x)
-            argslisty == getCommutativeArgList(y)
+            argslistx == getCommutativeArgList('+',x)
+            argslisty == getCommutativeArgList('*',y)
             ############### TO DO ##############
             return ['*',x,y]
-        elif x[0] == '^' and y[0] == '*':
-            return Multiply(y,x)
-        elif x[0] == '^' and y[0] == '^':
+        elif x[0] == '*' and y[0] == '+':
+            return Add(y,x)
+        elif x[0] == '*' and y[0] == '*':
             if x[1] == y[1]:
-                return ['^',x[1],Add(x[2],y[2])]
+                return ['*',x[1],Add(x[2],y[2])]
             else:
-                return ['*',x,y]
+                return ['+',x,y]
         elif x[0] == '{' and y[0] == '{':
-            return ['*',x,y]
+            return ['+',x,y]
         else:
-            return ['*',x,y]
+            return ['+',x,y]
     else:
-        return ['*',x,y]
+        return ['+',x,y]
 def AdditiveInverse(x):
     if isinstance(x,float):
         return -x
