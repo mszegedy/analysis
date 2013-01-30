@@ -282,7 +282,7 @@ def evaluateExpression(l):
                 return Error # Error: + has incorrect number of arguments
         elif op == '-':
             if len(args) == 2:
-                return evaluateExpression(Add(evaluateExpression(args[0]),evaluateExpression(AdditiveInverse(evaluateExpression(args[1])))))
+                return Add(evaluateExpression(args[0]),evaluateExpression(AdditiveInverse(evaluateExpression(args[1]))))
             else:
                 return Error # Error: - has incorrect number of arguments
         elif op == '*':
@@ -292,7 +292,7 @@ def evaluateExpression(l):
                 return Error # Error: * has incorrect number of arguments
         elif op == '/':
             if len(args) == 2:
-                return evaluateExpression(Multiply(evaluateExpression(args[0]),evaluateExpression(Reciprocal(evaluateExpression(args[1])))))
+                return Multiply(evaluateExpression(args[0]),evaluateExpression(Reciprocal(evaluateExpression(args[1]))))
         elif op == '{': # }
             return ['{']+[evaluateExpression(i) for i in args]
         else:
