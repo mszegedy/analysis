@@ -1,4 +1,4 @@
 analysis
 ========
 
-I'm making an analysis app in Python!
+I'm making a computer algebra system! It's all in Python.
