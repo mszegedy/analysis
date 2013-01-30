@@ -237,7 +237,12 @@ def Multiply(x,y):
                     return Multiply(Multiply(x[2],x[1]),y)
         elif x[0] == '*' and y[0] == '^':
             argslist == getCommutativeArgList(x)
-            if y[1] in argslist or ['^',y[1]] in map(lambda a:if isinstance(a,(list,tuple)):a[0:2] else:a,arglist):
+            def f(a):
+                if isinstance(a,(list,tuple)):
+                    return a[0:2]
+                else:
+                    return a
+            if y[1] in argslist or ['^',y[1]] in map(f,arglist):
                 addend = 0
                 for item in filter(lambda a:a==y[1],argslist):
                     addend += 1
