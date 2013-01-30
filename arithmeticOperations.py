@@ -192,7 +192,7 @@ def Multiply(x,y):
             else:
                 return ['*',x,y]
         elif y[0] == '/':
-            argslist = getCommutativeArgList(y[2])
+            argslist = getCommutativeArgList('*',y[2])
             if x in argslist:
                 argslist.remove(x)
                 if len(argslist) > 0:
@@ -236,7 +236,7 @@ def Multiply(x,y):
                 else:
                     return Multiply(Multiply(x[2],x[1]),y)
         elif x[0] == '*' and y[0] == '^':
-            argslist == getCommutativeArgList(x)
+            argslist == getCommutativeArgList('*',x)
             def f(a):
                 if isinstance(a,(list,tuple)):
                     return a[0:2]
