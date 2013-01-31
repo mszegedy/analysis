@@ -14,6 +14,21 @@ def getCommutativeArgList(op,lst):
     else:
         return lst
 
+def AdditiveInverse(x):
+    if isinstance(x,float):
+        return -x
+    elif x in (0,0.0):
+        return 0.0
+    elif isinstance(x,(list,tuple)):
+        if x[0] == '-':
+            if x[1] == x[2]:
+                return 0.0
+            else:
+                return ['-',x[2],x[1]]
+        else:
+            return ['-',0,x]
+    else:
+        return ['-',0,x]
 def Add(x,y):
     """Adds two things together."""
     if isinstance(y,list) and y[0] == '-' and y[2] == x:
@@ -103,13 +118,23 @@ def Add(x,y):
                         return Add(x[1],Add(x[2],Add(y[1],y[2])))
                 else:
                     return Add(Add(x[2],x[1]),y)
+        elif x[0] == '+' and y[0] == '-':
+            return ['-',Add(x,y[1]),y[2]]
+        elif x[0] == '-' and y[0] == '+':
+            return Add(y,x)
         elif x[0] == '+' and y[0] == '*':
-            argslistx == getCommutativeArgList('+',x)
-            argslisty == getCommutativeArgList('*',y)
-            ############### TO DO ##############
-            return ['*',x,y]
+            xarglist = getCommutativeArgList('+',x)
+            yarglist = getCommutativeArgList('*',y)
+            for addend in xarglist[:]:
+                if addend in yarglist:
+                    y = Add(y,1)
+                    yarglist = getCommutativeArgList('*',y)
+                    xarglist.remove(item)
+            return ['+',reduce(Add,xarglist),y]
         elif x[0] == '*' and y[0] == '+':
             return Add(y,x)
+        elif x[0] == '-' and y[0] == '*':
+            return ['-',Add(x[1],y),x[2]]
         elif x[0] == '*' and y[0] == '*':
             if x[1] == y[1]:
                 return ['*',x[1],Add(x[2],y[2])]
@@ -121,21 +146,35 @@ def Add(x,y):
             return ['+',x,y]
     else:
         return ['+',x,y]
-def AdditiveInverse(x):
-    if isinstance(x,float):
-        return -x
-    elif x in (0,0.0):
-        return 0.0
-    elif isinstance(x,(list,tuple)):
-        if x[0] == '-':
-            if x[1] == x[2]:
-                return 0.0
-            else:
-                return ['-',x[2],x[1]]
+def Reciprocal(x):
+    """Takes the reciprocal of something."""
+    if x in (0,0.0):
+    	return Error # Error: division by zero
+    elif isinstance(x,float):
+        return 1.0/x
+    elif isinstance(x,str):
+        return ['/',1.0,x]
+    elif isinstance(x,list):
+        if x[0] == '/':
+            return ['/',x[2],x[1]]
+        elif x[0] == '{':
+            return ['{']+[Reciprocal(i) for i in x[1:]]
+        elif x[0] == 'Sin':
+            return ['Csc',x[1]]
+        elif x[0] == 'Cos':
+            return ['Sec',x[1]]
+        elif x[0] == 'Tan':
+            return ['Cot',x[1]]
+        elif x[0] == 'Csc':
+            return ['Sin',x[1]]
+        elif x[0] == 'Sec':
+            return ['Cos',x[1]]
+        elif x[0] == 'Cot':
+            return ['Tan',x[1]]
         else:
-            return ['-',0,x]
+            return ['/',1.0,x]
     else:
-        return ['-',0,x]
+        return ['/',1.0,x]
 def Multiply(x,y):
     """Multiplies two things together."""
     if 0 in (x,y):
@@ -266,32 +305,3 @@ def Multiply(x,y):
             return ['*',x,y]
     else:
         return ['*',x,y]
-def Reciprocal(x):
-    """Takes the reciprocal of something."""
-    if x in (0,0.0):
-    	return Error # Error: division by zero
-    elif isinstance(x,float):
-        return 1.0/x
-    elif isinstance(x,str):
-        return ['/',1.0,x]
-    elif isinstance(x,list):
-        if x[0] == '/':
-            return ['/',x[2],x[1]]
-        elif x[0] == '{':
-            return ['{']+[Reciprocal(i) for i in x[1:]]
-        elif x[0] == 'Sin':
-            return ['Csc',x[1]]
-        elif x[0] == 'Cos':
-            return ['Sec',x[1]]
-        elif x[0] == 'Tan':
-            return ['Cot',x[1]]
-        elif x[0] == 'Csc':
-            return ['Sin',x[1]]
-        elif x[0] == 'Sec':
-            return ['Cos',x[1]]
-        elif x[0] == 'Cot':
-            return ['Tan',x[1]]
-        else:
-            return ['/',1.0,x]
-    else:
-        return ['/',1.0,x]
