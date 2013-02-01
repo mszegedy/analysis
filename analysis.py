@@ -38,16 +38,22 @@ def listAddToLastItemAtDepth(level,lst,addend):
 
 def rankOperator(op):
     """Numerically ranks the level of an operator."""
-    if op in ('=','<','>','<=','>=','->'):
-        rank = 0
-    elif op in ('+','-'):
-        rank = 1
-    elif op in ('*','/'):
-        rank = 2
+    if op in ('=','<','>','<=','>='):
+        return 0
+    elif op == '->':
+        return 1
+    elif op == '+':
+        return 2
+    elif op == '-':
+        return 3
+    elif op == '*':
+        return 4
+    elif op == '/':
+        return 5
     elif op == '^':
-        rank = 3
+        rank = 6
     else:
-        rank = 4
+        rank = 7
     return rank
 
 def isTerm(s):
@@ -163,7 +169,7 @@ def parseListToExpression(l):
     l = lcopy
     del hadOp,lcopy
     e = [] # The list that will be the expression that will be returned
-    lowestRank = 4 # The rank of the lowest-ranking operator in l
+    lowestRank = 7 # The rank of the lowest-ranking operator in l
     opIndex =  0 # Index of lowest-ranking operator in l
     for item in enumerate(l):
         if rankOperator(item[1]) < lowestRank:
@@ -259,6 +265,8 @@ def evaluateExpression(l):
     if not isinstance(l,(list,tuple)):
         return l
     else:
+        if len(l) == 0:
+            return None
         if len(l) == 1:
             return evaluateExpression(l[0])
         op = l[0]
@@ -347,8 +355,6 @@ def parseExpressionToString(l):
                 astring = '('+astring+')'
             if isinstance(args[1],(list,tuple)):
                 bstring = '('+bstring+')'
-            if isinstance(args[0],str) and isinstance(args[1],str):
-                return astring + '/' + bstring
             else:
                 return astring + '/' + bstring
         elif op == '{':
