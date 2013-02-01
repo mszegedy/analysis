@@ -6,7 +6,7 @@ def getCommutativeArgList(op,lst):
         result = []
         if lst[0] == op:
             for item in lst[1:]:
-                if isinstance(item,(lst,tuple)) and item[0] ==  op:
+                if isinstance(item,(list,tuple)) and item[0] ==  op:
                     result += getCommutativeArgList(item)
                 else:
                     result.append(item)
