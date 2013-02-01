@@ -305,6 +305,62 @@ def evaluateExpression(l):
                 return evaluateExpression(result)
             except KeyError:
                 return Error # Error: no such function
+def parseExpressionToString(l):
+    if isinstance(l,float):
+        if l == math.floor(l):
+            return str(int(l))
+        else:
+            return str(l)
+    elif isinstance(l,str):
+        return l
+    elif isinstance(l,(list,tuple)):
+        op = l[0]
+        args = l[1:]
+        if op == '+':
+            return parseExpressionToString(args[0]) + ' + ' + parseExpressionToString(args[1])
+        if op == '-':
+            if args[0] == 0:
+                return '-' + parseExpressionToString(args[1])
+            elif isinstance(args[1],(list,tuple)):
+                return parseExpressionToString(args[0]) + ' - (' + parseExpressionToString(args[1]) + ')'
+            else:
+                return parseExpressionToString(args[0]) + ' - ' + parseExpressionToString(args[1])
+        elif op == '*':
+            astring = parseExpressionToString(arg[0])
+            bstring = parseExpressionToString(arg[1])
+            if isinstance(arg[0],(list,tuple)):
+                astring = '('+astring+')'
+            if isinstance(arg[1],(list,tuple)):
+                bstring = '('+astring+')'
+            if isinstance(arg[0],str) and isinstance(arg[1],str):
+                return astring + ' ' + bstring
+            else:
+                return astring + bstring
+        elif op == '/':
+            astring = parseExpressionToString(arg[0])
+            bstring = parseExpressionToString(arg[1])
+            if isinstance(arg[0],(list,tuple)):
+                astring = '('+astring+')'
+            if isinstance(arg[1],(list,tuple)):
+                bstring = '('+astring+')'
+            if isinstance(arg[0],str) and isinstance(arg[1],str):
+                return astring + '/' + bstring
+            else:
+                return astring + '/' + bstring
+        elif op == '{':
+            result = '' # This is gonna get returned
+            for item in args:
+                result += parseExpressionToString(item) + ','
+            result = result[:-1]
+            return '{' + result + '}'
+        else:
+            result = '' # This is gonna get returned
+            for item in args:
+                result += parseExpressionToString(item) + ','
+            result = result[:-1]
+            return op + '[' + result + ']'
+    else:
+        return l
 
 print "MAT (Michael's Analysis Tool), version 0.0.0\nAll rights reserved"
 while True:
@@ -312,4 +368,4 @@ while True:
     if expression == 'quit':
         break
     else:
-        print evaluateExpression(parseListToExpression(parseStringToList(expression)))
+        print parseExpressionToString(evaluateExpression(parseListToExpression(parseStringToList(expression))))
