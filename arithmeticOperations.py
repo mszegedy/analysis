@@ -25,6 +25,15 @@ def AdditiveInverse(x):
                 return 0.0
             else:
                 return ['-',x[2],x[1]]
+        elif x[0] == '*':
+            if isinstance(x[1],float):
+                x[1] *= -1
+                return x
+            elif isinstance(x[2],float):
+                x[2] *= -1
+                return ['*',x[2],x[1]]
+            else:
+                return ['*',-1,x]
         else:
             return ['-',0,x]
     else:
