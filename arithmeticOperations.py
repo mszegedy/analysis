@@ -91,9 +91,9 @@ def Add(x,y):
                     return y[1]
         elif y[0] == '*':
             if y[1] == x:
-                return ['*',x,Add(y[1],1.0)]
+                return ['*',Add(y[2],1.0),x]
             elif y[2] == x:
-                return ['*',x,Add(y[2],1.0)]
+                return ['*',Add(y[1],1.0),x]
             else:
                 return ['+',x,y]
         elif y[0] == '{':
@@ -130,17 +130,36 @@ def Add(x,y):
             yarglist = getCommutativeArgList('*',y)
             for addend in xarglist[:]:
                 if addend in yarglist:
-                    y = Add(y,1)
+                    y = Add(y,1.0)
                     yarglist = getCommutativeArgList('*',y)
-                    xarglist.remove(item)
+                    xarglist.remove(addend)
             return ['+',reduce(Add,xarglist),y]
         elif x[0] == '*' and y[0] == '+':
             return Add(y,x)
         elif x[0] == '-' and y[0] == '*':
-            return ['-',Add(x[1],y),x[2]]
+            xplusargs = getCommutativeArgList('+',x[1])
+            xminusargs = getCommutativeArgList('+',x[2])
+            yargs = getCommutativeArgList('*',y)
+            for addend in xplusargs:
+                if addend in yargs:
+                    y = Add(y,addend)
+                    yargs = getCommutativeArgList('*',y)
+                    xplusargs.remove(addend)
+            for minuend in xminusargs:
+                if minuend in yargs:
+                    y = Add(y,['*',-1.0,minuend])
+                    yargs = getCommutativeArgList('*',y)
+                    xminusargs.remove(minuend)
+            return ['-',reduce(Add,xplusargs+y),reduce(Add,xminusargs)]
         elif x[0] == '*' and y[0] == '*':
             if x[1] == y[1]:
-                return ['*',x[1],Add(x[2],y[2])]
+                return ['*',Add(x[2],y[2]),x[1]]
+            elif x[2] == y[2]:
+                return ['*',Add(x[1],y[1]),x[2]]
+            elif x[1] == y[2]:
+                return ['*',Add(x[2],y[1]),x[1]]
+            elif x[2] == y[1]:
+                return ['*',Add(x[1],y[2]),x[2]]
             else:
                 return ['+',x,y]
         elif x[0] == '{' and y[0] == '{':
