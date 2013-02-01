@@ -326,24 +326,28 @@ def parseExpressionToString(l):
             else:
                 return parseExpressionToString(args[0]) + ' - ' + parseExpressionToString(args[1])
         elif op == '*':
-            astring = parseExpressionToString(arg[0])
-            bstring = parseExpressionToString(arg[1])
-            if isinstance(arg[0],(list,tuple)):
+            astring = parseExpressionToString(args[0])
+            bstring = parseExpressionToString(args[1])
+            if isinstance(args[0],(list,tuple)) and astring[0] != '-':
                 astring = '('+astring+')'
-            if isinstance(arg[1],(list,tuple)):
-                bstring = '('+astring+')'
-            if isinstance(arg[0],str) and isinstance(arg[1],str):
+            if isinstance(args[1],(list,tuple)) and bstring[0] != '-':
+                bstring = '('+bstring+')'
+            if astring[0] == '-' and bstring[0] == '-':
+                astring,bstring = astring[1:],bstring[1:]
+            if astring[0] != '-' and bstring[0] == '-':
+                astring,bstring = '-'+astring,bstring[1:]
+            if isinstance(args[0],str) and isinstance(args[1],str):
                 return astring + ' ' + bstring
             else:
                 return astring + bstring
         elif op == '/':
-            astring = parseExpressionToString(arg[0])
-            bstring = parseExpressionToString(arg[1])
-            if isinstance(arg[0],(list,tuple)):
+            astring = parseExpressionToString(args[0])
+            bstring = parseExpressionToString(args[1])
+            if isinstance(args[0],(list,tuple)):
                 astring = '('+astring+')'
-            if isinstance(arg[1],(list,tuple)):
-                bstring = '('+astring+')'
-            if isinstance(arg[0],str) and isinstance(arg[1],str):
+            if isinstance(args[1],(list,tuple)):
+                bstring = '('+bstring+')'
+            if isinstance(args[0],str) and isinstance(args[1],str):
                 return astring + '/' + bstring
             else:
                 return astring + '/' + bstring
@@ -359,8 +363,10 @@ def parseExpressionToString(l):
                 result += parseExpressionToString(item) + ','
             result = result[:-1]
             return op + '[' + result + ']'
+    elif l == None:
+        return ''
     else:
-        return l
+        return str(l)
 
 print "MAT (Michael's Analysis Tool), version 0.0.0\nAll rights reserved"
 while True:
@@ -368,4 +374,8 @@ while True:
     if expression == 'quit':
         break
     else:
-        print parseExpressionToString(evaluateExpression(parseListToExpression(parseStringToList(expression))))
+        response = parseExpressionToString(evaluateExpression(parseListToExpression(parseStringToList(expression))))
+        if response:
+            print response
+        else:
+            pass

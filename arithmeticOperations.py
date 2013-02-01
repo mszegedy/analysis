@@ -62,8 +62,11 @@ def Add(x,y):
                 return ['+',x,y]
         elif y[0] == '-':
             argslist = getCommutativeArgList('+',y[2])
-            if isinstance(reduce(Add,argslist)[1],float):
-                return ['-',Add(x/reduce(Add,argslist),y[1]),reduce(Add,argslist[1:])]
+            if isinstance(reduce(Add,argslist),(list,tuple)):
+                if isinstance(reduce(Add,argslist)[1],float):
+                    return ['-',Add(x/reduce(Add,argslist),y[1]),reduce(Add,argslist[1:])]
+            else:
+                return ['-',y[1],reduce(Add,argslist)]
         elif y[0] == '{':
             return ['{']+[Add(x,i) for i in y[1:]]
         else:
