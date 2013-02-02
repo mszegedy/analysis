@@ -131,7 +131,16 @@ def Add(x,y):
                 else:
                     return Add(Add(x[2],x[1]),y)
         elif x[0] == '+' and y[0] == '-':
-            return ['-',Add(x,y[1]),y[2]]
+            xarglist = getCommutativeArgList('+',x)
+            yarglist = getCommutativeArgList('+',y[2])
+            for item in xargs[:]:
+                if item in yminusargs:
+                    xarglist.remove(item)
+                    yarglist.remove(item)
+            if len(yargslist) > 0:
+                return ['-',Add(reduce(Add,xarglist),y[1]),reduce(Add,yarglist)]
+            else:
+                return Add(reduce(Add,xarglist),y[1])
         elif x[0] == '-' and y[0] == '+':
             return Add(y,x)
         elif x[0] == '+' and y[0] == '*':
@@ -139,22 +148,25 @@ def Add(x,y):
             yarglist = getCommutativeArgList('*',y)
             for addend in xarglist[:]:
                 if addend in yarglist:
-                    y = Add(y,1.0)
-                    yarglist = getCommutativeArgList('*',y)
-                    xarglist.remove(addend)
-            return ['+',reduce(Add,xarglist),y]
+                    if isinstance(y[1],float):
+                        y[1] += 1.0
+                        xarglist.remove(addend)
+            if len(xarglist) > 0:
+                return ['+',reduce(Add,xarglist),y]
+            else:
+                return y
         elif x[0] == '*' and y[0] == '+':
             return Add(y,x)
         elif x[0] == '-' and y[0] == '*':
             xplusargs = getCommutativeArgList('+',x[1])
             xminusargs = getCommutativeArgList('+',x[2])
             yargs = getCommutativeArgList('*',y)
-            for addend in xplusargs:
+            for addend in xplusargs[:]:
                 if addend in yargs:
                     y = Add(y,addend)
                     yargs = getCommutativeArgList('*',y)
                     xplusargs.remove(addend)
-            for minuend in xminusargs:
+            for minuend in xminusargs[:]:
                 if minuend in yargs:
                     y = Add(y,['*',-1.0,minuend])
                     yargs = getCommutativeArgList('*',y)
