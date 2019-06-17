@@ -60,6 +60,8 @@ def isTerm(s):
     """Checks whether a string is a valid mathematical term."""
     result = True
     if not isinstance(s,list):
+        if s[0] == '-':
+            s = s[1:]
         for char in s:
             if not char.isalnum() and char != '.':
                 result = False
@@ -106,44 +108,48 @@ def listSearchAndReplace(lst,x,y):
 
 def parseStringToList(s):
     """Parses an input string to an intermediate list."""
-    for char in s:
-        if char == ' ':
-            s = s[1:]
-        else:
-            break
-    for char in s[::-1]:
-        if char == ' ':
-            s = s[:-1]
-        else:
-            break
     l = [] # List that will eventually be returned
-    charState = 0 # Tracks whether the last character was a separator (0), non-alphanumeric (1), number or period (2), or letter (3)
+    charState = 0 # Tracks whether the last character was a separator (0), non-alphanumeric (1), minus sign (2), number or period (3), or letter (4)
+    symmetricMinus = False # Kepps track of whether there are no spaces on either side of a minus sign or not (if there are no spaces, this becomes true)
     level = 0 # Level in list at which to perform operations
     for char in s:
         if char == ' ':
             charState = 0
+            symmtricMinus = False
         elif char in ('(','[','{'):
             listAppendAtDepth(level,l,[])
             level += 1
             charState = 0
+            symmetricMinus = False
             listAppendAtDepth(level,l,char)
         elif char in (')',']','}'):
             listAppendAtDepth(level,l,char)
-            level -= 1
+            symmetricMinus = False
             charState = 0
-        elif not char.isalnum() and char != '.':
+            level -= 1
+        elif not char.isalnum() and not char in ('.','-'):
             if charState != 1:
                 listAppendAtDepth(level,l,'')
             listAddToLastItemAtDepth(level,l,char)
             charState = 1
+            symmetricMinus = False
         else:
-            if not charState in (2,3) or (char.isalpha() and charState == 2):
+            if charState in (0,1) or (charState == 3 and char.isalpha()) or (charState == 2 and not (char.isalnum() or char == '.')) or symmetricMinus or char == '-':
                 listAppendAtDepth(level,l,'')
-            listAddToLastItemAtDepth(level,l,char)
-            if char.isalpha() or charState == 3:
-                charState = 3
+            if char == '-' and not charState in (0,1,2):
+                symmetricMinus = True
             else:
+                symmetricMinus = False
+            listAddToLastItemAtDepth(level,l,char)
+            if char.isalpha():
+                charState = 4
+                symmetricMinus
+            elif char in map(str,range(10)) + ['.']:
+                charState = 3
+            elif char == '-':
                 charState = 2
+            else:
+                charState = 1
     return l
 
 def parseListToExpression(l):
@@ -175,7 +181,7 @@ def parseListToExpression(l):
         if rankOperator(item[1]) < lowestRank:
             lowestRank = rankOperator(item[1])
             opIndex = item[0]
-    if lowestRank < 4:
+    if lowestRank < 7:
         e = [l[opIndex],parseListToExpression(l[:opIndex]),parseListToExpression(l[opIndex+1:])]
     else:
         if len(l) == 0:
@@ -301,7 +307,7 @@ def evaluateExpression(l):
         elif op == '/':
             if len(args) == 2:
                 return Multiply(evaluateExpression(args[0]),Reciprocal(evaluateExpression(args[1])))
-        elif op == '{': # }
+        elif op == '{':
             return ['{']+[evaluateExpression(i) for i in args]
         else:
             try:
@@ -374,14 +380,15 @@ def parseExpressionToString(l):
     else:
         return str(l)
 
-print "MAT (Michael's Analysis Tool), version 0.0.0\nAll rights reserved"
+print "MAT (Maria's Analysis Tool), version 0.0.1\nAll rights reserved"
 while True:
     expression = raw_input("> ")
     if expression == 'quit':
         break
     else:
-        response = parseExpressionToString(evaluateExpression(parseListToExpression(parseStringToList(expression))))
-        if response:
+        response = parseStringToList(expression)
+        #response = parseExpressionToString(evaluateExpression(parseListToExpression(parseStringToList(expression))))
+        if response != []:
             print response
         else:
             pass

@@ -12,7 +12,7 @@ def getCommutativeArgList(op,lst):
                     result.append(item)
         return result
     else:
-        return lst
+        return [lst]
 
 def AdditiveInverse(x):
     if isinstance(x,float):
